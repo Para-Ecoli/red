@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7e1224">
+  <meta name="description" content="红色问答 · 党史知识竞答。从内置题库随机抽题，逐题作答，即时反馈与解析。">
+  <title>红色问答 · 党史知识竞答</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <span class="ambient-star"></span>
+    <span class="ambient-rings"></span>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="红色问答首页">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-opacity=".45"/>
+          <circle cx="24" cy="24" r="17.5" stroke="currentColor" stroke-opacity=".22"/>
+          <path d="M24 10.5l3.15 9.6h10.1l-8.17 5.94 3.12 9.6L24 29.7l-8.2 5.94 3.12-9.6-8.17-5.94h10.1L24 10.5z" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-copy">
+        <span class="brand-name">红色问答</span>
+        <span class="brand-tagline">党史知识竞答</span>
+      </span>
+    </a>
+    <div class="header-side">
+      <span class="bank-status" id="bank-status"><i aria-hidden="true"></i><span id="bank-status-text">题库加载中</span></span>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <section id="setup-view" class="view view-setup is-active" aria-labelledby="hero-title">
+      <div class="setup-shell">
+        <div class="setup-hero">
+          <div class="hero-seal" aria-hidden="true">
+            <svg viewBox="0 0 320 320" fill="none">
+              <circle cx="160" cy="160" r="156" stroke="currentColor" stroke-opacity=".18"/>
+              <circle cx="160" cy="160" r="138" stroke="currentColor" stroke-opacity=".36" stroke-dasharray="1 9" stroke-linecap="round"/>
+              <circle cx="160" cy="160" r="104" stroke="currentColor" stroke-opacity=".14"/>
+              <circle cx="160" cy="160" r="72" stroke="currentColor" stroke-opacity=".18"/>
+              <path d="M160 98l12.9 39.5h41.5l-33.6 24.4 12.9 39.5L160 177l-33.7 24.4 12.9-39.5-33.6-24.4h41.5L160 98z" stroke="currentColor" stroke-opacity=".35" stroke-width="1.2"/>
+              <path d="M160 22v18M160 280v18M22 160h18M280 160h18M62 62l13 13M245 245l13 13M258 62l-13 13M75 245l-13 13" stroke="currentColor" stroke-opacity=".35" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <div class="hero-content">
+            <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>党史学习教育 · 知识竞答</p>
+            <div class="hero-emblem" aria-hidden="true">
+              <svg viewBox="0 0 100 100" fill="none">
+                <circle cx="50" cy="50" r="47" stroke="currentColor" stroke-opacity=".42"/>
+                <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-opacity=".24"/>
+                <path d="M50 21l6.4 19.7h20.7L60.4 52.9l6.4 19.7L50 60.4 33.2 72.6l6.4-19.7-16.7-12.1h20.7L50 21z" fill="currentColor"/>
+              </svg>
+            </div>
+            <h1 id="hero-title">重温峥嵘岁月<br><span>汲取奋进力量</span></h1>
+            <p class="hero-lede">从南湖红船到复兴征程，在一次次选择中回望百年党史，让信仰的力量抵达此刻。</p>
+            <div class="hero-quote">
+              <span aria-hidden="true"></span>
+              <p>学史明理 · 学史增信<br>学史崇德 · 学史力行</p>
+            </div>
+          </div>
+
+          <div class="hero-foot">
+            <div class="hero-stat">
+              <strong id="hero-total">—</strong>
+              <span>题库总题量</span>
+            </div>
+            <div class="hero-stat">
+              <strong id="hero-parts">—</strong>
+              <span>知识板块</span>
+            </div>
+            <div class="hero-stat">
+              <strong class="is-text">随机</strong>
+              <span>抽题 · 选项乱序</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-panel">
+          <div class="panel-heading">
+            <span class="panel-index" aria-hidden="true">01</span>
+            <div>
+              <p class="panel-kicker">本场设置</p>
+              <h2>定制你的答题</h2>
+            </div>
+          </div>
+
+          <div class="setup-body">
+            <section class="field-group" aria-labelledby="total-label">
+              <div class="field-head">
+                <span class="field-label" id="total-label">题目总数</span>
+                <span class="field-note">最多可选 <b id="max-total">—</b> 题</span>
+              </div>
+              <div class="total-control">
+                <button class="stepper-btn" id="total-minus" type="button" aria-label="减少题目总数">−</button>
+                <div class="total-value">
+                  <input id="total-input" type="number" min="1" value="20" inputmode="numeric" aria-labelledby="total-label" disabled>
+                  <span>题</span>
+                </div>
+                <button class="stepper-btn" id="total-plus" type="button" aria-label="增加题目总数">+</button>
+                <div class="quick-totals" id="quick-totals" aria-label="快捷题量"></div>
+              </div>
+            </section>
+
+            <section class="field-group" aria-labelledby="parts-label">
+              <div class="field-head">
+                <span class="field-label" id="parts-label">板块配题</span>
+                <button class="text-btn" id="auto-allocate" type="button">一键均分</button>
+              </div>
+              <div class="part-list" id="part-list" aria-live="polite" aria-busy="true">
+                <div class="part-skeleton"></div>
+                <div class="part-skeleton"></div>
+                <div class="part-skeleton"></div>
+              </div>
+              <div class="allocation-line">
+                <span>合计 <strong id="allocation-total">—</strong> 题</span>
+                <span class="allocation-note">调整板块题数时，总题量同步变化</span>
+              </div>
+            </section>
+
+            <div class="bank-caption" id="bank-caption">
+              <span class="caption-mark" aria-hidden="true">◆</span>
+              <span>正在读取题库…</span>
+            </div>
+          </div>
+
+          <div class="panel-action">
+            <button class="primary-btn start-btn" id="start-btn" type="button" disabled>
+              <span id="start-btn-label">开始答题</span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <p class="privacy-hint">题目与选项均由浏览器本地随机抽取、即时打乱</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quiz-view" class="view view-quiz" aria-labelledby="question-text" hidden>
+      <div class="quiz-shell">
+        <div class="quiz-topbar">
+          <button class="quiet-btn" id="quit-quiz" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>退出答题</span>
+          </button>
+          <div class="quiz-meta">
+            <span class="quiz-part" id="quiz-part-name">正在抽取题目</span>
+            <span class="quiz-count"><b id="quiz-current">1</b><span>/</span><span id="quiz-total">20</span></span>
+          </div>
+        </div>
+
+        <div class="progress-track" id="quiz-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="答题进度">
+          <span class="progress-fill" id="progress-fill"></span>
+        </div>
+
+        <article class="question-card">
+          <div class="question-topline">
+            <span class="type-badge" id="type-badge">单选题</span>
+            <span class="question-label">QUESTION <b id="question-number">01</b></span>
+          </div>
+
+          <h1 class="question-text" id="question-text" tabindex="-1">题目加载中</h1>
+          <p class="question-hint" id="question-hint">选择你认为正确的答案</p>
+
+          <div class="options" id="option-list"></div>
+
+          <div class="feedback" id="feedback" aria-live="polite" hidden>
+            <div class="feedback-main">
+              <span class="feedback-icon" id="feedback-icon" aria-hidden="true"></span>
+              <div class="feedback-copy">
+                <p class="feedback-title" id="feedback-title"></p>
+                <p class="feedback-answer" id="feedback-answer"></p>
+              </div>
+            </div>
+            <div class="explanation" id="explanation-wrap">
+              <span class="explanation-tag">解析</span>
+              <p id="explanation-text"></p>
+            </div>
+          </div>
+
+          <div class="question-actions">
+            <span class="keyboard-hint" id="keyboard-hint">可按选项字母快速作答</span>
+            <button class="secondary-btn" id="submit-answer" type="button" hidden>确认答案</button>
+            <button class="primary-btn next-btn" id="next-question" type="button" hidden>
+              <span id="next-btn-label">下一题</span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </article>
+
+        <p class="quiz-footnote">每题作答后立即判分 · 看清解析，再继续前行</p>
+      </div>
+    </section>
+
+    <section id="result-view" class="view view-result" aria-labelledby="result-title" hidden>
+      <div class="result-shell">
+        <div class="result-card">
+          <div class="result-halo" aria-hidden="true"></div>
+          <div class="result-heading">
+            <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>本场竞答 · 已完成</p>
+            <h1 id="result-title" tabindex="-1">答题完成</h1>
+            <p class="result-sub" id="result-sub"></p>
+          </div>
+
+          <div class="score-visual">
+            <svg class="score-ring" viewBox="0 0 220 220" aria-hidden="true">
+              <defs>
+                <linearGradient id="ring-gradient" x1="30" y1="190" x2="190" y2="30" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#c0273b"/>
+                  <stop offset="1" stop-color="#d7b474"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-track" cx="110" cy="110" r="94"/>
+              <circle class="ring-value" id="ring-value" cx="110" cy="110" r="94" stroke="url(#ring-gradient)"/>
+              <circle class="ring-dot" cx="110" cy="16" r="4" opacity=".55"/>
+              <circle class="ring-dot" cx="110" cy="204" r="3" opacity=".28"/>
+            </svg>
+            <div class="score-center">
+              <span class="score-caption">答对</span>
+              <div class="score-number">
+                <strong id="result-correct">0</strong>
+                <span><i>/</i><b id="result-total">0</b></span>
+              </div>
+              <span class="score-unit">题</span>
+              <span class="accuracy-pill" id="result-accuracy">正确率 0%</span>
+            </div>
+          </div>
+
+          <p class="result-sentence">本次答对 <strong id="result-correct-inline">0</strong> 题，共作答 <strong id="result-total-inline">0</strong> 题</p>
+
+          <div class="ornament-divider" aria-hidden="true">
+            <span></span>
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 3l1.9 6h6.2l-5 3.7 1.9 6-5-3.7-5 3.7 1.9-6-5-3.7h6.2L12 3z" fill="currentColor"/>
+            </svg>
+            <span></span>
+          </div>
+
+          <div class="part-results" id="part-results"></div>
+
+          <p class="result-time">本场用时 <strong id="result-duration">00:00</strong></p>
+
+          <div class="result-actions">
+            <button class="primary-btn" id="restart-btn" type="button">
+              <span>再答一局</span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="ghost-btn" id="back-home" type="button">返回设置</button>
+          </div>
+        </div>
+        <p class="result-foot">学而时习之，不亦说乎</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>红色问答 · 学党史　知党情　跟党走</span>
+    <span>逐题作答 · 即时解析 · 随机抽题</span>
+  </footer>
+
+  <dialog class="confirm-dialog" id="exit-dialog">
+    <div class="dialog-symbol" aria-hidden="true">?</div>
+    <h2>退出本次答题？</h2>
+    <p>当前作答进度不会保存，退出后需要重新开始。</p>
+    <div class="dialog-actions">
+      <button class="ghost-btn" id="exit-cancel" type="button">继续答题</button>
+      <button class="primary-btn compact" id="exit-confirm" type="button">确认退出</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <div class="noscript-note">本页面需要启用 JavaScript 才能进行答题。</div>
+  </noscript>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

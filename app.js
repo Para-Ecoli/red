@@ -2,11 +2,26 @@ import { normalizeBank } from './bank-core.js';
 import { LocalQuizSession } from './quiz-core.js';
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 94;
+const BANK_PAGE_SIZE = 40;
 
 const dom = {
   setupView: document.getElementById('setup-view'),
+  bankView: document.getElementById('bank-view'),
   quizView: document.getElementById('quiz-view'),
   resultView: document.getElementById('result-view'),
+
+  openBank: document.getElementById('open-bank'),
+  browseBank: document.getElementById('browse-bank'),
+  closeBank: document.getElementById('close-bank'),
+  bankTitle: document.getElementById('bank-view-title'),
+  bankSub: document.getElementById('bank-sub'),
+  bankTally: document.getElementById('bank-tally'),
+  bankToggleAll: document.getElementById('bank-toggle-all'),
+  bankSearch: document.getElementById('bank-search'),
+  bankFilters: document.getElementById('bank-filters'),
+  bankList: document.getElementById('bank-list'),
+  bankMore: document.getElementById('bank-more'),
+  bankNote: document.getElementById('bank-note'),
 
   bankStatus: document.getElementById('bank-status'),
   bankStatusText: document.getElementById('bank-status-text'),
@@ -32,6 +47,7 @@ const dom = {
   progressFill: document.getElementById('progress-fill'),
   questionCard: document.querySelector('.question-card'),
   typeBadge: document.getElementById('type-badge'),
+  questionDiff: document.getElementById('question-diff'),
   questionNumber: document.getElementById('question-number'),
   questionText: document.getElementById('question-text'),
   questionHint: document.getElementById('question-hint'),
@@ -68,6 +84,11 @@ const dom = {
 const state = {
   bank: null,
   bankReady: false,
+  bankItems: null,
+  bankFilterPart: 'all',
+  bankKeyword: '',
+  bankShown: 0,
+  bankAnswersOpen: false,
   total: 0,
   allocation: new Map(),
   session: null,
@@ -125,6 +146,7 @@ function showToast(message) {
 function showView(name) {
   const views = {
     setup: dom.setupView,
+    bank: dom.bankView,
     quiz: dom.quizView,
     result: dom.resultView,
   };
@@ -437,6 +459,8 @@ async function loadBank() {
   dom.totalInput.disabled = true;
   dom.totalMinus.disabled = true;
   dom.totalPlus.disabled = true;
+  dom.openBank.disabled = true;
+  dom.browseBank.disabled = true;
   dom.partList.setAttribute('aria-busy', 'true');
   dom.partList.replaceChildren();
 
@@ -474,6 +498,12 @@ async function loadBank() {
     }
     state.bank = bank;
     state.bankReady = true;
+    state.bankItems = null;
+    state.bankFilterPart = 'all';
+    state.bankKeyword = '';
+    state.bankAnswersOpen = false;
+    dom.bankSearch.value = '';
+    dom.bankToggleAll.textContent = '展开全部答案';
     document.title = `${bank.meta.title} · 红色问答`;
     updateBankSummary(bank);
     renderParts();
@@ -488,12 +518,207 @@ async function loadBank() {
     dom.totalMinus.disabled = false;
     dom.totalPlus.disabled = false;
     dom.autoAllocate.disabled = false;
+    dom.openBank.disabled = false;
+    dom.browseBank.disabled = false;
     syncConfigUI();
     setBankStatus('ready', `题库就绪 · ${bank.stats.totalQuestions} 题`);
   } catch (error) {
     state.bank = null;
     renderBankError(error.message);
   }
+}
+
+/* ---------- 题库浏览 ---------- */
+
+function collectBankItems() {
+  let number = 0;
+  return state.bank.parts.flatMap((part) => part.questions.map((question) => {
+    number += 1;
+    return { number, partId: part.id, partName: part.name, question };
+  }));
+}
+
+function matchesKeyword(item, keyword) {
+  const question = item.question;
+  return question.question.includes(keyword) ||
+    question.explanation.includes(keyword) ||
+    item.partName.includes(keyword) ||
+    question.options.some((option) => option.text.includes(keyword));
+}
+
+function filteredBankItems() {
+  const keyword = state.bankKeyword.trim();
+  return state.bankItems.filter((item) => (
+    (state.bankFilterPart === 'all' || item.partId === state.bankFilterPart) &&
+    (!keyword || matchesKeyword(item, keyword))
+  ));
+}
+
+function createBankItem(item) {
+  const question = item.question;
+  const article = document.createElement('article');
+  article.className = 'bank-item';
+  article.dataset.type = question.type;
+
+  const top = document.createElement('div');
+  top.className = 'bank-item-top';
+
+  const index = document.createElement('span');
+  index.className = 'bank-item-index';
+  index.textContent = String(item.number).padStart(3, '0');
+
+  const partName = document.createElement('span');
+  partName.className = 'bank-item-part';
+  partName.textContent = item.partName;
+
+  const badge = document.createElement('span');
+  badge.className = 'type-badge';
+  badge.textContent = typeLabels[question.type] || '单选题';
+
+  const diff = document.createElement('span');
+  diff.className = 'diff-badge';
+  setDiffBadge(diff, question);
+
+  const badges = document.createElement('span');
+  badges.className = 'bank-item-badges';
+  badges.append(diff, badge);
+
+  top.append(index, partName, badges);
+
+  const stem = document.createElement('p');
+  stem.className = 'bank-item-stem';
+  stem.textContent = question.question;
+
+  const reveal = document.createElement('details');
+  reveal.className = 'bank-reveal';
+  reveal.open = state.bankAnswersOpen;
+
+  const summary = document.createElement('summary');
+  summary.className = 'bank-reveal-btn';
+  summary.textContent = '答案与解析';
+  reveal.append(summary);
+
+  const options = document.createElement('div');
+  options.className = 'bank-options';
+  const answerSet = new Set(question.answer);
+  question.options.forEach((option, optionIndex) => {
+    const row = document.createElement('div');
+    row.className = 'bank-option';
+    if (answerSet.has(optionIndex)) row.classList.add('is-correct');
+
+    const key = document.createElement('span');
+    key.className = 'bank-option-key';
+    key.textContent = option.key;
+
+    const text = document.createElement('span');
+    text.className = 'bank-option-text';
+    text.textContent = option.text;
+
+    row.append(key, text);
+    options.append(row);
+  });
+  reveal.append(options);
+
+  if (question.explanation) {
+    const explanation = document.createElement('div');
+    explanation.className = 'explanation';
+
+    const tag = document.createElement('span');
+    tag.className = 'explanation-tag';
+    tag.textContent = '解析';
+
+    const copy = document.createElement('p');
+    copy.textContent = question.explanation;
+
+    explanation.append(tag, copy);
+    reveal.append(explanation);
+  }
+
+  article.append(top, stem, reveal);
+  return article;
+}
+
+function renderBankFilters() {
+  dom.bankFilters.replaceChildren();
+  const chips = [
+    { id: 'all', name: '全部板块', total: state.bank.stats.totalQuestions },
+    ...state.bank.parts.map((part) => ({ id: part.id, name: part.name, total: part.total })),
+  ];
+
+  for (const chip of chips) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'bank-chip';
+    button.dataset.partId = chip.id;
+    button.setAttribute('aria-pressed', String(chip.id === state.bankFilterPart));
+
+    const name = document.createElement('span');
+    name.textContent = chip.name;
+
+    const count = document.createElement('span');
+    count.className = 'bank-chip-count';
+    count.textContent = String(chip.total);
+
+    button.append(name, count);
+    dom.bankFilters.append(button);
+  }
+}
+
+function updateBankFoot(items) {
+  dom.bankTally.textContent = `筛选出 ${items.length} 题`;
+  dom.bankMore.hidden = state.bankShown >= items.length;
+  dom.bankNote.textContent = items.length
+    ? `已显示 ${state.bankShown} / ${items.length} 题`
+    : '没有匹配的题目，换个关键词或板块试试。';
+}
+
+function renderBankList(reset) {
+  const items = filteredBankItems();
+  if (reset) {
+    dom.bankList.replaceChildren();
+    state.bankShown = 0;
+  }
+
+  const limit = Math.min(items.length, state.bankShown + BANK_PAGE_SIZE);
+  const fragment = document.createDocumentFragment();
+  for (const item of items.slice(state.bankShown, limit)) {
+    fragment.append(createBankItem(item));
+  }
+  dom.bankList.append(fragment);
+  state.bankShown = limit;
+
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.className = 'bank-empty';
+    empty.textContent = '没有匹配的题目，换个关键词或板块试试。';
+    dom.bankList.append(empty);
+  }
+
+  updateBankFoot(items);
+}
+
+function openBankView() {
+  if (!state.bankReady || state.busy) return;
+  if (!state.bankItems) {
+    state.bankItems = collectBankItems();
+    renderBankFilters();
+    dom.bankSub.textContent = `共 ${state.bank.stats.totalQuestions} 题 · ${state.bank.stats.partCount} 个板块，点击题目下方查看选项、答案与解析。`;
+  }
+  renderBankList(true);
+  showView('bank');
+  window.requestAnimationFrame(() => {
+    dom.bankTitle.focus({ preventScroll: true });
+  });
+}
+
+function setBankFilterPart(partId) {
+  state.bankFilterPart = partId;
+  for (const chip of dom.bankFilters.querySelectorAll('.bank-chip')) {
+    const active = chip.dataset.partId === partId;
+    chip.classList.toggle('is-active', active);
+    chip.setAttribute('aria-pressed', String(active));
+  }
+  renderBankList(true);
 }
 
 function setRestartLoading(loading) {
@@ -581,6 +806,14 @@ function updateSelectedOptions() {
   dom.submitAnswer.disabled = state.selected.size === 0;
 }
 
+function setDiffBadge(element, question) {
+  const label = question.difficultyLabel || '';
+  element.hidden = !label;
+  element.textContent = label;
+  if (question.difficulty) element.dataset.diff = question.difficulty;
+  else delete element.dataset.diff;
+}
+
 function renderQuestion(question) {
   state.question = question;
   state.answer = null;
@@ -592,6 +825,7 @@ function renderQuestion(question) {
   dom.quizCurrent.textContent = String(question.number);
   dom.quizTotal.textContent = String(question.total);
   dom.typeBadge.textContent = typeLabels[question.type] || '单选题';
+  setDiffBadge(dom.questionDiff, question);
   dom.questionCard.dataset.type = question.type;
   dom.questionNumber.textContent = String(question.number).padStart(2, '0');
   dom.questionText.textContent = question.question;
@@ -968,6 +1202,33 @@ function bindEvents() {
   dom.quitQuiz.addEventListener('click', openExitDialog);
   dom.exitCancel.addEventListener('click', () => dom.exitDialog.close());
   dom.exitConfirm.addEventListener('click', returnToSetup);
+
+  dom.openBank.addEventListener('click', openBankView);
+  dom.browseBank.addEventListener('click', openBankView);
+  dom.closeBank.addEventListener('click', () => showView('setup'));
+  dom.bankSearch.addEventListener('input', () => {
+    state.bankKeyword = dom.bankSearch.value;
+    renderBankList(true);
+  });
+  dom.bankFilters.addEventListener('click', (event) => {
+    const chip = event.target.closest('.bank-chip');
+    if (chip) setBankFilterPart(chip.dataset.partId);
+  });
+  dom.bankMore.addEventListener('click', () => renderBankList(false));
+  dom.bankToggleAll.addEventListener('click', () => {
+    state.bankAnswersOpen = !state.bankAnswersOpen;
+    dom.bankToggleAll.textContent = state.bankAnswersOpen ? '收起全部答案' : '展开全部答案';
+    for (const details of dom.bankList.querySelectorAll('.bank-reveal')) {
+      details.open = state.bankAnswersOpen;
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !dom.bankView.hidden && !dom.exitDialog.open) {
+      event.preventDefault();
+      showView('setup');
+    }
+  });
 
   document.addEventListener('keydown', (event) => {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;

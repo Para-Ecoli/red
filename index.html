@@ -30,6 +30,12 @@
       </span>
     </a>
     <div class="header-side">
+      <button class="header-link" id="open-bank" type="button" aria-label="查看题库总览" disabled>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6.5h7a2 2 0 012 2V19a2.4 2.4 0 00-2-1.5H4zM20 6.5h-7a2 2 0 00-2 2V19a2.4 2.4 0 012-1.5h7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span>题库总览</span>
+      </button>
       <span class="bank-status" id="bank-status"><i aria-hidden="true"></i><span id="bank-status-text">题库加载中</span></span>
     </div>
   </header>
@@ -137,8 +143,55 @@
                 <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
+            <button class="ghost-btn browse-btn" id="browse-bank" type="button" disabled>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 6.5h7a2 2 0 012 2V19a2.4 2.4 0 00-2-1.5H4zM20 6.5h-7a2 2 0 00-2 2V19a2.4 2.4 0 012-1.5h7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+              <span>查看全部题库</span>
+            </button>
             <p class="privacy-hint">题目与选项均由浏览器本地随机抽取、即时打乱</p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bank-view" class="view view-bank" aria-labelledby="bank-view-title" hidden>
+      <div class="bank-shell">
+        <div class="bank-topbar">
+          <button class="quiet-btn" id="close-bank" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>返回设置</span>
+          </button>
+          <div class="bank-topbar-side">
+            <span class="bank-tally" id="bank-tally" role="status"></span>
+            <button class="text-btn" id="bank-toggle-all" type="button">展开全部答案</button>
+          </div>
+        </div>
+
+        <header class="bank-heading">
+          <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>题库总览 · 全部题目</p>
+          <h1 id="bank-view-title" tabindex="-1">查看全部题库</h1>
+          <p class="bank-sub" id="bank-sub">按板块或关键词检索，逐题查看答案与解析。</p>
+        </header>
+
+        <div class="bank-toolbar">
+          <div class="bank-search">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.2" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M15.8 15.8L20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <input id="bank-search" class="bank-search-input" type="search" placeholder="搜索题干、选项或解析" aria-label="搜索题库关键词" autocomplete="off">
+          </div>
+          <div class="bank-filters" id="bank-filters" role="group" aria-label="按板块筛选"></div>
+        </div>
+
+        <div class="bank-list" id="bank-list"></div>
+
+        <div class="bank-foot">
+          <button class="ghost-btn" id="bank-more" type="button" hidden>加载更多</button>
+          <p class="bank-note" id="bank-note"></p>
         </div>
       </div>
     </section>
@@ -164,7 +217,10 @@
 
         <article class="question-card">
           <div class="question-topline">
-            <span class="type-badge" id="type-badge">单选题</span>
+            <div class="topline-badges">
+              <span class="type-badge" id="type-badge">单选题</span>
+              <span class="diff-badge" id="question-diff" hidden></span>
+            </div>
             <span class="question-label">QUESTION <b id="question-number">01</b></span>
           </div>
 

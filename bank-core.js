@@ -18,6 +18,7 @@ const EXPLANATION_KEYS = [
   'reason', 'comment', '解析', '答案解析',
 ];
 const TYPE_KEYS = ['type', 'questionType', 'question_type', 'qtype', 'kind', '题型'];
+const DIFFICULTY_KEYS = ['diff', 'difficulty', 'level', 'grade', 'star', '难度', '难易', '难易程度', '星级'];
 const ID_KEYS = ['id', 'no', 'number', 'num', 'code'];
 const GROUP_NAME_KEYS = ['name', 'title', 'label', 'category', 'categoryName', 'typeName', 'part', 'type'];
 const GROUP_DESCRIPTION_KEYS = ['description', 'desc', 'intro', 'subtitle', 'summary'];
@@ -365,6 +366,30 @@ function resolveAnswers(value, options) {
   return [...indexes].sort((a, b) => a - b);
 }
 
+const DIFFICULTY_LABELS = {
+  easy: '易',
+  medium: '中',
+  hard: '难',
+};
+
+const DIFFICULTY_ALIASES = new Map([
+  ['易', 'easy'], ['简单', 'easy'], ['容易', 'easy'], ['低', 'easy'], ['初级', 'easy'], ['入门', 'easy'],
+  ['e', 'easy'], ['easy', 'easy'], ['simple', 'easy'], ['1', 'easy'], ['★', 'easy'],
+
+  ['中', 'medium'], ['中等', 'medium'], ['一般', 'medium'], ['普通', 'medium'], ['适中', 'medium'],
+  ['m', 'medium'], ['medium', 'medium'], ['moderate', 'medium'], ['mid', 'medium'], ['2', 'medium'], ['★★', 'medium'],
+
+  ['难', 'hard'], ['较难', 'hard'], ['困难', 'hard'], ['高', 'hard'], ['高级', 'hard'], ['挑战', 'hard'],
+  ['h', 'hard'], ['hard', 'hard'], ['difficult', 'hard'], ['3', 'hard'], ['★★★', 'hard'],
+]);
+
+function normalizeDifficulty(value) {
+  const text = asText(value);
+  if (!text) return { key: '', label: '' };
+  const key = DIFFICULTY_ALIASES.get(text.replace(/\s/g, '').toLowerCase()) || '';
+  return { key, label: key ? DIFFICULTY_LABELS[key] : text };
+}
+
 function normalizeQuestion(raw, context) {
   const { number, warnings, partName } = context;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -407,11 +432,14 @@ function normalizeQuestion(raw, context) {
 
   const explanation = asText(firstDefined(raw, EXPLANATION_KEYS));
   const sourceId = firstDefined(raw, ID_KEYS);
+  const difficulty = normalizeDifficulty(firstDefined(raw, DIFFICULTY_KEYS));
 
   return {
     id: `q-${number}`,
     sourceId: sourceId === undefined ? null : String(sourceId),
     type,
+    difficulty: difficulty.key,
+    difficultyLabel: difficulty.label,
     question,
     options: options.map((option, index) => ({ key: letterFor(index), text: option.text })),
     answer,
